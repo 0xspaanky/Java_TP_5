@@ -3,151 +3,240 @@
 ![Exercise 4 Diagram](./entities/image.png)
 
 ## Objective
-Develop a comprehensive library management system with a document hierarchy, demonstrating inheritance, encapsulation, and interactive menu-driven operations.
+Develop a library management system with document hierarchy (Document → Livre/Revue → specialized books), CRUD operations, and interactive menu interface.
 
-## Description
-This exercise creates a complete library system with multiple document types (books, journals, dictionaries, novels, manuals) organized in a hierarchy. The system includes full CRUD operations through an interactive console interface.
-
-## Package Structure
-
-```
-src/
-├─ entities/
-│   ├─ Document.java          (Base class)
-│   ├─ Livre.java             (Book)
-│   ├─ Revue.java             (Journal/Magazine)
-│   ├─ Dictionnaire.java      (Dictionary - extends Livre)
-│   ├─ Roman.java             (Novel - extends Livre)
-│   ├─ Manuel.java            (Manual/Textbook - extends Livre)
-│   └─ Bibliotheque.java      (Library container)
-└─ test/
-    └─ Main.java              (Interactive test program)
-```
+## Key Concepts
+- Multi-level inheritance (3 levels)
+- Fixed-capacity array management
+- CRUD operations (Create, Read, Update, Delete)
+- Type checking with `instanceof`
+- Interactive console menu
 
 ## Class Hierarchy
-
 ```
-                    Document (abstract/base)
-                    ├─ numEnreg : int (auto-increment)
-                    ├─ titre : String
-                    ├─ toString()
-                          /|\
-                           |
-              +------------+------------+
-              |                         |
-           Livre                     Revue
-           ├─ auteur                 ├─ numero
-           ├─ nbPages                ├─ mois
-           ├─ toString()             ├─ annee
-                |                    └─ toString()
-      +---------+---------+
-      |         |         |
- Dictionnaire  Roman   Manuel
- ├─ langue     ├─genre  ├─ niveau
- └─toString()  └─...    └─ ...
+Document (base)
+├─ Livre (Book)
+│   ├─ Dictionnaire (Dictionary)
+│   ├─ Roman (Novel)
+│   └─ Manuel (Manual)
+└─ Revue (Journal)
 ```
 
-## Class Details
+## Implementation
 
 ### Document (Base Class)
-Located in `entities` package
+```java
+package entities;
 
-**Attributes:**
-- `numEnreg` (int): Auto-incremented registration number (starts at 1)
-- `titre` (String): Document title
+public class Document {
+    private static int compteur = 0;
+    private final int numEnreg;
+    protected String titre;
 
-**Requirements:**
-- Proper encapsulation (private attributes, public getters/setters)
-- Auto-increment `numEnreg` using static counter
-- Override `toString()` for readable display
+    public Document(String titre) {
+        this.numEnreg = ++compteur;
+        this.titre = titre;
+    }
+
+    public int getNumEnreg() { return numEnreg; }
+    public String getTitre() { return titre; }
+
+    @Override
+    public String toString() {
+        return "Document[numEnreg=" + numEnreg + ", titre='" + titre + "']";
+    }
+}
+```
 
 ### Livre (Book)
+```java
+public class Livre extends Document {
+    private String auteur;
+    private int nbPages;
 
-**Attributes:**
-- Inherits from Document
-- `auteur` (String): Author name
-- `nbPages` (int): Number of pages
+    public Livre(String titre, String auteur, int nbPages) {
+        super(titre);
+        this.auteur = auteur;
+        this.nbPages = nbPages;
+    }
 
-**Methods:**
-- Constructor with parameters
-- Getters/setters for all attributes
-- Overridden `toString()`
+    public String getAuteur() { return auteur; }
 
-### Revue (Journal/Magazine)
-
-**Attributes:**
-- Inherits from Document
-- `numero` (int): Issue number
-- `mois` (int): Month (1-12)
-- `annee` (int): Year
-
-**Methods:**
-- Constructor with parameters
-- Getters/setters for all attributes
-- Overridden `toString()`
+    @Override
+    public String toString() {
+        return "Livre[numEnreg=" + getNumEnreg() + ", titre='" + getTitre() +
+               "', auteur='" + auteur + "', pages=" + nbPages + "]";
+    }
+}
+```
 
 ### Dictionnaire (Dictionary)
+```java
+public class Dictionnaire extends Livre {
+    private String langue;
 
-**Attributes:**
-- Extends Livre
-- `langue` (String): Language (e.g., "Français-Anglais")
+    public Dictionnaire(String titre, String auteur, int nbPages, String langue) {
+        super(titre, auteur, nbPages);
+        this.langue = langue;
+    }
+
+    @Override
+    public String toString() {
+        return "Dictionnaire" + super.toString() + " {langue='" + langue + "'}";
+    }
+}
+```
 
 ### Roman (Novel)
+```java
+public class Roman extends Livre {
+    private String genre;
 
-**Attributes:**
-- Extends Livre
-- `genre` (String): Genre (e.g., "Science-Fiction", "Romance")
+    public Roman(String titre, String auteur, int nbPages, String genre) {
+        super(titre, auteur, nbPages);
+        this.genre = genre;
+    }
 
-### Manuel (Manual/Textbook)
+    @Override
+    public String toString() {
+        return "Roman" + super.toString() + " {genre='" + genre + "'}";
+    }
+}
+```
 
-**Attributes:**
-- Extends Livre
-- `niveau` (String): Education level (e.g., "Universitaire", "Lycée")
+### Revue (Journal)
+```java
+public class Revue extends Document {
+    private int numero;
+    private int mois;
+    private int annee;
+
+    public Revue(String titre, int numero, int mois, int annee) {
+        super(titre);
+        this.numero = numero;
+        this.mois = mois;
+        this.annee = annee;
+    }
+
+    @Override
+    public String toString() {
+        return "Revue[numEnreg=" + getNumEnreg() + ", titre='" + getTitre() +
+               "', numero=" + numero + ", mois=" + mois + ", annee=" + annee + "]";
+    }
+}
+```
 
 ### Bibliotheque (Library)
-
-**Attributes:**
-- `documents` (Document[]): Array of documents
-- `capacite` (int): Maximum capacity
-- `nbDocuments` (int): Current document count
-
-**Constructor:**
 ```java
-public Bibliotheque(int capacite)
+public class Bibliotheque {
+    private Document[] documents;
+    private int capacite;
+    private int nbDocuments = 0;
+
+    public Bibliotheque(int capacite) {
+        this.capacite = capacite;
+        this.documents = new Document[capacite];
+    }
+
+    public boolean ajouter(Document doc) {
+        if (nbDocuments >= capacite) return false;
+        documents[nbDocuments++] = doc;
+        return true;
+    }
+
+    public boolean supprimer(Document doc) {
+        for (int i = 0; i < nbDocuments; i++) {
+            if (documents[i] == doc) {
+                // Shift remaining elements
+                for (int j = i; j < nbDocuments - 1; j++) {
+                    documents[j] = documents[j + 1];
+                }
+                documents[--nbDocuments] = null;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Document document(int numEnreg) {
+        for (int i = 0; i < nbDocuments; i++) {
+            if (documents[i].getNumEnreg() == numEnreg) {
+                return documents[i];
+            }
+        }
+        return null;
+    }
+
+    public void afficherDocuments() {
+        System.out.println("===== BIBLIOTHEQUE =====");
+        for (int i = 0; i < nbDocuments; i++) {
+            System.out.println("[" + (i+1) + "] " + documents[i]);
+        }
+    }
+
+    public void afficherAuteurs() {
+        System.out.println("===== AUTEURS =====");
+        for (int i = 0; i < nbDocuments; i++) {
+            if (documents[i] instanceof Livre) {
+                Livre livre = (Livre) documents[i];
+                System.out.println("- " + livre.getAuteur());
+            }
+        }
+    }
+}
 ```
-Creates library with specified capacity.
 
-**Methods:**
+## Usage Example
+```java
+package test;
+import entities.*;
 
-#### void afficherDocuments()
-Displays all documents in the library with their details.
+public class Main {
+    public static void main(String[] args) {
+        Bibliotheque biblio = new Bibliotheque(10);
 
-#### boolean ajouter(Document doc)
-Adds document to library.
-- Returns `true` if successful
-- Returns `false` if library is full
+        Document d1 = new Roman("Les Misérables", "Victor Hugo", 1500, "Classique");
+        Document d2 = new Dictionnaire("Larousse", "Collectif", 2000, "FR-EN");
+        Document d3 = new Revue("Science et Vie", 423, 6, 2024);
 
-#### boolean supprimer(Document doc)
-Removes document from library.
-- Returns `true` if found and removed
-- Returns `false` if not found
-- Shifts remaining documents to fill gap
+        biblio.ajouter(d1);
+        biblio.ajouter(d2);
+        biblio.ajouter(d3);
 
-#### Document document(int numEnrg)
-Searches for document by registration number.
-- Returns Document if found
-- Returns `null` if not found
+        biblio.afficherDocuments();
+        biblio.afficherAuteurs();
 
-#### void afficherAuteurs()
-Displays list of all authors.
-- Only shows authors from Livre-derived documents
-- Uses `instanceof` to check type
-- Casts to Livre to access author attribute
+        Document found = biblio.document(2);
+        if (found != null) {
+            System.out.println("Trouvé: " + found);
+        }
 
-## Interactive Menu System
+        biblio.supprimer(d3);
+    }
+}
+```
 
-The Main class provides an interactive console menu:
+## Expected Output
+```
+===== BIBLIOTHEQUE =====
+[1] Roman[numEnreg=1, titre='Les Misérables', auteur='Victor Hugo', pages=1500] {genre='Classique'}
+[2] Dictionnaire[numEnreg=2, titre='Larousse', auteur='Collectif', pages=2000] {langue='FR-EN'}
+[3] Revue[numEnreg=3, titre='Science et Vie', numero=423, mois=6, annee=2024]
 
+===== AUTEURS =====
+- Victor Hugo
+- Collectif
+
+Trouvé: Dictionnaire[numEnreg=2, titre='Larousse', auteur='Collectif', pages=2000] {langue='FR-EN'}
+```
+
+## Compilation & Execution
+```bash
+javac entities/*.java test/*.java
+java test.Main
+```
+
+## Interactive Menu
 ```
 ===== MENU BIBLIOTHEQUE =====
 1. Ajouter un document
@@ -157,181 +246,17 @@ The Main class provides an interactive console menu:
 5. Afficher tous les auteurs
 6. Quitter
 ============================
-Votre choix :
 ```
 
-### Menu Operations
+## Key Features
+- **Fixed capacity**: Library enforces maximum document limit
+- **Array shifting**: Remove operation shifts elements left
+- **Type checking**: `instanceof` to filter books for authors
+- **Auto-increment IDs**: Unique registration numbers
 
-1. **Ajouter** - Prompts for document type and details
-2. **Afficher** - Lists all documents with details
-3. **Supprimer** - Removes by registration number
-4. **Rechercher** - Finds by registration number
-5. **Auteurs** - Lists all unique authors
-6. **Quitter** - Exits program
-
-## Implementation Requirements
-
-### Encapsulation
-- All attributes must be private
-- Public getters/setters for controlled access
-- Constructor initializes all required fields
-
-### Auto-increment Pattern
-```java
-private static int compteur = 0;
-private final int numEnreg;
-
-public Document(String titre) {
-    this.numEnreg = ++compteur;
-    this.titre = titre;
-}
-```
-
-### toString() Override
-Each class must provide meaningful string representation:
-```java
-@Override
-public String toString() {
-    return "Livre[numEnreg=" + numEnreg +
-           ", titre='" + titre + "'" +
-           ", auteur='" + auteur + "'" +
-           ", pages=" + nbPages + "]";
-}
-```
-
-## Example Usage
-
-```java
-// Create library with capacity of 10
-Bibliotheque biblio = new Bibliotheque(10);
-
-// Add initial documents
-Document d1 = new Roman("Les Misérables", "Victor Hugo", 1500, "Classique");
-Document d2 = new Dictionnaire("Larousse", "Collectif", 2000, "Français-Anglais");
-Document d3 = new Revue("Science et Vie", 423, 6, 2024);
-
-biblio.ajouter(d1);
-biblio.ajouter(d2);
-biblio.ajouter(d3);
-
-// Display all
-biblio.afficherDocuments();
-
-// Search by number
-Document found = biblio.document(2);
-if (found != null) {
-    System.out.println("Trouvé: " + found);
-}
-
-// Display authors
-biblio.afficherAuteurs();
-
-// Remove document
-biblio.supprimer(d3);
-```
-
-## Expected Output Pattern
-
-```
-===== BIBLIOTHEQUE =====
-[1] Roman[numEnreg=1, titre='Les Misérables', auteur='Victor Hugo', pages=1500, genre='Classique']
-[2] Dictionnaire[numEnreg=2, titre='Larousse', auteur='Collectif', pages=2000, langue='Français-Anglais']
-[3] Revue[numEnreg=3, titre='Science et Vie', numero=423, mois=6, annee=2024]
-
-===== AUTEURS =====
-- Victor Hugo
-- Collectif
-```
-
-## Compilation & Execution
-
-```bash
-# From src/ directory
-javac entities/*.java test/*.java
-java test.Main
-```
-
-## Key Concepts Demonstrated
-
-### Multi-Level Inheritance
-- Document → Livre → Dictionnaire/Roman/Manuel
-- Document → Revue
-- Three levels of hierarchy
-
-### Encapsulation
-- Private attributes
-- Public accessors
-- Controlled data access
-
-### Polymorphism
-- Array of Document holds all types
-- Correct toString() called for each type
-- `instanceof` for type checking
-
-### Array Management
-- Fixed capacity library
-- Add/remove operations
-- Search functionality
-- Array shifting for deletions
-
-### Type Checking and Casting
-```java
-if (documents[i] instanceof Livre) {
-    Livre livre = (Livre) documents[i];
-    System.out.println(livre.getAuteur());
-}
-```
-
-## Verification Checklist
-- [ ] Auto-increment works for all document types
-- [ ] Library respects capacity limit
-- [ ] Add operation returns false when full
-- [ ] Remove operation shifts array correctly
-- [ ] Search finds documents by number
-- [ ] afficherAuteurs() shows only book authors
-- [ ] All toString() methods work correctly
-- [ ] Menu system handles all operations
-- [ ] Input validation prevents errors
-
-## Possible Extensions
-
-### Enhanced Features
-- **ISBN Management**: Add ISBN for books
-- **Due Dates**: Track borrowed documents
-- **User System**: Library cards and borrowing history
-- **Reservation System**: Queue for popular documents
-- **Categories**: Tag-based classification
-
-### Search Enhancements
-- Search by title (partial match)
-- Search by author
-- Search by year/date range
-- Filter by document type
-
-### Reporting
-- Most borrowed documents
-- Overdue reports
-- Collection statistics
-- Acquisition reports
-
-### Data Persistence
-- Save library to file (serialization)
-- Load library from file
-- Export to CSV/JSON
-- Database integration
-
-### GUI Development
-- JavaFX interface
-- Swing desktop application
-- Web interface
-
-## Files
-- `entities/Document.java`: Base document class
-- `entities/Livre.java`: Book class
-- `entities/Revue.java`: Journal class
-- `entities/Dictionnaire.java`: Dictionary (extends Livre)
-- `entities/Roman.java`: Novel (extends Livre)
-- `entities/Manuel.java`: Manual (extends Livre)
-- `entities/Bibliotheque.java`: Library management
-- `test/Main.java`: Interactive menu system
-- `subejct.txt`: Complete exercise specifications
+## Extensions
+- Add ISBN management for books
+- Track borrowed documents and due dates
+- Implement user/borrower system
+- Search by title or author
+- Save/load library data from files
